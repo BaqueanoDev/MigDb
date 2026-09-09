@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="MigDb.CLI/MigDb.CLI.csproj" />
+  <Project Path="MigDb.Core/MigDb.Core.csproj" />
+  <Project Path="MigDb.Test/MigDb.Test.csproj" />
+  <Project Path="MigDb.VSExtension/MigDb.VSExtension.csproj" Id="cd961114-4a77-45d3-ac1c-47febf282e9e">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

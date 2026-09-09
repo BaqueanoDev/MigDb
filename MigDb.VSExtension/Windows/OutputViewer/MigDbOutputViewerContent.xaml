@@ -1,0 +1,188 @@
+<DataTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:vs="http://schemas.microsoft.com/visualstudio/extensibility/2022/xaml"
+              xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+              xmlns:colors="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
+
+    <Grid Margin="8"
+          TextOptions.TextFormattingMode="Display"
+          Background="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+        <Grid.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowTextBrushKey}}" />
+            </Style>
+
+            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
+            <Style TargetType="ScrollBar" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ScrollBarStyleKey}}" />
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ThemedDialogButtonStyleKey}}" />
+            <SolidColorBrush x:Key="MatchBrush" Color="#FFC24B" />
+            <SolidColorBrush x:Key="MatchTextBrush" Color="#1E1E1E" />
+
+            <Style x:Key="SearchBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ThemedDialogTextBoxStyleKey}}">
+                <Setter Property="Width" Value="220" />
+                <!-- Stretch so the box matches the height of the tallest toolbar item (the clear button). -->
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+            
+            <Style x:Key="OutputTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Static styles:VsResourceKeys.ThemedDialogTextBoxStyleKey}}">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+                <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding WrapLines}" Value="True">
+                        <Setter Property="TextWrapping" Value="Wrap" />
+                        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsSearching}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Highlight view: one row per line, one TextBlock per plain/matching run. -->
+            <Style x:Key="HighlightListStyle" TargetType="ListBox">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static colors:TreeViewColors.BackgroundBrushKey}}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+                <Setter Property="VirtualizingStackPanel.IsVirtualizing" Value="True" />
+                <Setter Property="VirtualizingStackPanel.VirtualizationMode" Value="Recycling" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSearching}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding WrapLines}" Value="True">
+                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="OutputLineItemStyle" TargetType="ListBoxItem">
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="MinHeight" Value="15" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListBoxItem">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="LineNumberTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowTextBrushKey}}" />
+                <Setter Property="TextAlignment" Value="Right" />
+                <Setter Property="MinWidth" Value="34" />
+                <Setter Property="Opacity" Value="0.45" />
+                <Setter Property="Margin" Value="0,0,8,0" />
+            </Style>
+            
+            <Style x:Key="SegmentTextStyle" TargetType="TextBox">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:EnvironmentColors.ToolWindowTextBrushKey}}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="IsReadOnly" Value="True" />
+                <Setter Property="IsReadOnlyCaretVisible" Value="False" />
+                <Setter Property="IsTabStop" Value="False" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+                <Setter Property="HorizontalScrollBarVisibility" Value="Hidden" />
+                <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsMatch}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource MatchBrush}" />
+                        <Setter Property="Foreground" Value="{StaticResource MatchTextBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding DataContext.WrapLines, RelativeSource={RelativeSource AncestorType=ListBox}}" Value="True">
+                        <Setter Property="TextWrapping" Value="Wrap" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+
+            <TextBox Style="{StaticResource SearchBoxStyle}"
+                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Matches are highlighted" />
+
+            <Button Content="&#x2715;"
+                    Command="{Binding ClearSearchCommand}"
+                    ToolTip="Clear the search and go back to the plain, selectable view"
+                    MinWidth="24"
+                    Margin="5,0,0,0" />
+
+            <TextBlock Text="{Binding MatchSummary}"
+                       Opacity="0.8"
+                       Margin="8,0,0,0"
+                       VerticalAlignment="Center" />
+
+            <CheckBox Content="Only matching lines"
+                      IsChecked="{Binding OnlyMatches, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      Margin="12,0,0,0" />
+
+            <CheckBox Content="Wrap lines"
+                      IsChecked="{Binding WrapLines, Mode=TwoWay}"
+                      VerticalAlignment="Center"
+                      Margin="12,0,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            
+            <!-- actual textbox output gets displayed to -->
+            <TextBox Style="{StaticResource OutputTextBoxStyle}"
+                     Text="{Binding CLIOutput, Mode=OneWay}"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="13"
+                     ToolTip="Ctrl+C copies the selection, Ctrl+A selects all." />
+
+            <!--fake searchable list -->
+            <ListBox Style="{StaticResource HighlightListStyle}"
+                     ItemsSource="{Binding CLIFilterLines}"
+                     ItemContainerStyle="{StaticResource OutputLineItemStyle}"
+                     FontFamily="Consolas"
+                     FontSize="13">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" Text="{Binding Number}" Style="{StaticResource LineNumberTextStyle}" />
+
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding Segments}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Text, Mode=OneWay}" Style="{StaticResource SegmentTextStyle}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Grid>
+</DataTemplate>

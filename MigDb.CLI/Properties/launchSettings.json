@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MigDb.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    }
+  }
+}
